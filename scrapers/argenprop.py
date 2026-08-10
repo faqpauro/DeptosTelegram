@@ -2,7 +2,7 @@ import logging
 import re
 from curl_cffi import requests
 from bs4 import BeautifulSoup
-from config import MAX_PRICE
+from config import MAX_PRICE, is_location_valid
 from scrapers.browser_fetch import fetch_html_with_playwright
 
 logger = logging.getLogger(__name__)
@@ -71,6 +71,11 @@ def fetch_argenprop():
 
                     address_el = card.select_one('.card__address')
                     address = address_el.get_text(strip=True) if address_el else neighborhood
+
+                    # FILTRO DE UBICACIÓN ESTRICTO
+                    if not is_location_valid(address, title, neighborhood):
+                        logger.debug(f"[Argenprop] Ignorando propiedad fuera del barrio deseado: {address} | {title}")
+                        continue
 
                     price_el = card.select_one('.card__price')
                     raw_price_text = price_el.get_text(" ", strip=True) if price_el else ""
