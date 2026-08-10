@@ -3,32 +3,38 @@ import requests
 
 logger = logging.getLogger(__name__)
 
-def send_telegram_message(bot_token: str, chat_id: str, message_html: str) -> bool:
-    """Envía un mensaje formateado con HTML a Telegram."""
-    if not bot_token or not chat_id:
-        logger.warning("TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no estan configurados en config.py")
-        print("[!] ALERTA: No has configurado TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID en config.py aun.")
+def send_telegram_message(bot_token: str, chat_id_str: str, message_html: str) -> bool:
+    """Envía un mensaje formateado con HTML a uno o múltiples chat_ids de Telegram separados por coma."""
+    if not bot_token or not chat_id_str:
+        logger.warning("TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID no estan configurados")
+        print("[!] ALERTA: No has configurado TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID aun.")
         return False
 
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    payload = {
-        "chat_id": chat_id,
-        "text": message_html,
-        "parse_mode": "HTML",
-        "disable_web_page_preview": False
-    }
+    # Soportar múltiples IDs separados por coma (ej: "6608835035,9876543210")
+    chat_ids = [c.strip() for c in chat_id_str.split(",") if c.strip()]
+    overall_success = True
 
-    try:
-        response = requests.post(url, json=payload, timeout=10)
-        if response.status_code == 200:
-            logger.info(f"Mensaje enviado con éxito a Telegram chat_id={chat_id}")
-            return True
-        else:
-            logger.error(f"Error enviando mensaje a Telegram: HTTP {response.status_code} - {response.text}")
-            return False
-    except Exception as e:
-        logger.error(f"Excepción al enviar mensaje a Telegram: {e}")
-        return False
+    for cid in chat_ids:
+        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+        payload = {
+            "chat_id": cid,
+            "text": message_html,
+            "parse_mode": "HTML",
+            "disable_web_page_preview": False
+        }
+
+        try:
+            response = requests.post(url, json=payload, timeout=10)
+            if response.status_code == 200:
+                logger.info(f"Mensaje enviado con éxito a Telegram chat_id={cid}")
+            else:
+                logger.error(f"Error enviando mensaje a Telegram chat_id={cid}: HTTP {response.status_code} - {response.text}")
+                overall_success = False
+        except Exception as e:
+            logger.error(f"Excepción al enviar mensaje a Telegram chat_id={cid}: {e}")
+            overall_success = False
+
+    return overall_success
 
 def format_property_message(prop: dict) -> str:
     """Crea la plantilla de mensaje formateado HTML para Telegram."""
