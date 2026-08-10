@@ -2,8 +2,8 @@ import os
 
 # Configuración del Bot de Telegram
 # Reemplaza con tu TOKEN recibido de @BotFather y tu CHAT_ID obtenido de @userinfobot
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8658747902:AAHegLGZme5RIf_zJHzsIfwEMsmFPooAjZA")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "6608835035")
 
 # Filtros de Búsqueda
 MAX_PRICE = 950000  # En pesos argentinos (alquiler sin expensas)
