@@ -8,8 +8,8 @@ from scrapers.browser_fetch import fetch_html_with_playwright
 logger = logging.getLogger(__name__)
 
 SEARCH_URLS = [
-    ("Villa Devoto", f"https://inmuebles.mercadolibre.com.ar/alquiler/departamentos/capital-federal/villa-devoto/_Hasta_{MAX_PRICE}"),
-    ("Villa Real", f"https://inmuebles.mercadolibre.com.ar/alquiler/departamentos/capital-federal/villa-real/_Hasta_{MAX_PRICE}")
+    ("Villa Devoto", "https://listado.mercadolibre.com.ar/alquiler-departamento-villa-devoto"),
+    ("Villa Real", "https://listado.mercadolibre.com.ar/alquiler-departamento-villa-real")
 ]
 
 def parse_price(price_text: str) -> int:
@@ -35,13 +35,13 @@ def fetch_mercadolibre():
             html = ""
             try:
                 r = requests.get(url, impersonate="chrome120", headers=headers, timeout=15)
-                if r.status_code == 200:
+                if r.status_code == 200 and "ui-search" in r.text:
                     html = r.text
                 else:
-                    logger.info(f"[MercadoLibre] Status code {r.status_code}. Intentando con Playwright Chromium...")
+                    logger.info(f"[MercadoLibre] Usando Playwright Chromium para {url}...")
                     html = fetch_html_with_playwright(url)
             except Exception:
-                logger.info("[MercadoLibre] Fallo HTTP directo. Intentando con Playwright Chromium...")
+                logger.info(f"[MercadoLibre] Usando Playwright Chromium para {url}...")
                 html = fetch_html_with_playwright(url)
 
             if not html:
@@ -50,9 +50,8 @@ def fetch_mercadolibre():
             soup = BeautifulSoup(html, 'html.parser')
             cards = (
                 soup.select('li.ui-search-layout__item') or
-                soup.select('.ui-search-result__wrapper') or
                 soup.select('.poly-card') or
-                soup.select('.ui-search-layout__item')
+                soup.select('.ui-search-result__wrapper')
             )
 
             logger.info(f"[MercadoLibre] Encontradas {len(cards)} publicaciones en {neighborhood}")
@@ -84,7 +83,6 @@ def fetch_mercadolibre():
 
                     # FILTRO DE UBICACIÓN ESTRICTO
                     if not is_location_valid(address, title, neighborhood):
-                        logger.debug(f"[MercadoLibre] Ignorando propiedad fuera del barrio deseado: {address} | {title}")
                         continue
 
                     price_fraction = (
