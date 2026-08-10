@@ -1,0 +1,15 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Entornos virtuales
+env/
+venv/
+ENV/
+
+# Base de datos local de pruebas (en GitHub Actions se usa cache de DB)
+*.log
+ml_sample.html

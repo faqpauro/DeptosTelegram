@@ -1,0 +1,41 @@
+name: Deptos Telegram Scraper Bot (24/7 en la Nube)
+
+on:
+  schedule:
+    # Corre automáticamente cada 20 minutos (24 horas al día, 7 días a la semana)
+    - cron: '*/20 * * * *'
+  workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub cuando quieras
+
+jobs:
+  scrape-and-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Instalar Dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Restaurar Base de Datos de Deptos Vistos (Cache)
+        uses: actions/cache@v3
+        with:
+          path: seen_properties.db
+          key: seen-props-db-${{ github.run_id }}
+          restore-keys: |
+            seen-props-db-
+
+      - name: Ejecutar Scraper de Alquileres
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python main.py --once
