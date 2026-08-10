@@ -3,8 +3,14 @@ from playwright.sync_api import sync_playwright
 
 logger = logging.getLogger(__name__)
 
-def fetch_html_with_playwright(url: str, timeout: int = 30000) -> str:
+def fetch_html_with_playwright(url: str, timeout: int = 30000, user_agent: str = None) -> str:
     """Descarga el HTML cargado completamente usando Playwright Chromium con bypass stealth."""
+    if not user_agent:
+        if "mercadolibre" in url:
+            user_agent = "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        else:
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/124.0.0.0 Safari/537.36"
+
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(
@@ -21,7 +27,7 @@ def fetch_html_with_playwright(url: str, timeout: int = 30000) -> str:
                 ]
             )
             context = browser.new_context(
-                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/124.0.0.0 Safari/537.36",
+                user_agent=user_agent,
                 locale="es-AR",
                 timezone_id="America/Argentina/Buenos_Aires",
                 viewport={"width": 1366, "height": 768}
@@ -32,7 +38,7 @@ def fetch_html_with_playwright(url: str, timeout: int = 30000) -> str:
                 Object.defineProperty(navigator, 'languages', {get: () => ['es-AR', 'es']});
                 Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
             """)
-            
+
             page.goto(url, wait_until="domcontentloaded", timeout=timeout)
             page.wait_for_timeout(4000)
             html = page.content()
