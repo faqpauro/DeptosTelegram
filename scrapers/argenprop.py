@@ -12,10 +12,8 @@ SEARCH_URLS = [
 ]
 
 def parse_price(price_text: str) -> int:
-    """Extrae el precio numérico en pesos de un texto como '$ 750.000 + $ 200.000 expensas'."""
     if not price_text:
         return 0
-    # Buscar el primer monto en pesos (precio de alquiler)
     match = re.search(r'\$\s*([\d\.]+)', price_text)
     if match:
         clean_str = match.group(1).replace('.', '')
@@ -26,17 +24,26 @@ def parse_price(price_text: str) -> int:
     return 0
 
 def fetch_argenprop():
-    """Obtiene los departamentos de Argenprop para Devoto y Villa Real."""
     properties = []
     
     headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "es-AR,es;q=0.9"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Accept-Language": "es-AR,es;q=0.9,en-US;q=0.8,en;q=0.7",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1"
     }
 
     for neighborhood, url in SEARCH_URLS:
         try:
-            r = requests.get(url, impersonate="chrome120", headers=headers, timeout=15)
+            r = requests.get(url, impersonate="chrome120", headers=headers, timeout=20)
             if r.status_code != 200:
                 logger.warning(f"[Argenprop] Status code {r.status_code} al consultar {url}")
                 continue
@@ -47,7 +54,6 @@ def fetch_argenprop():
 
             for card in cards:
                 try:
-                    # Link e ID
                     link_el = card.select_one('a.card')
                     if not link_el or 'href' not in link_el.attrs:
                         continue
@@ -55,30 +61,25 @@ def fetch_argenprop():
                     rel_link = link_el['href']
                     full_link = "https://www.argenprop.com" + rel_link if not rel_link.startswith("http") else rel_link
                     
-                    # Intentar extraer ID único de la URL
                     prop_id_match = re.search(r'--(\d+)', rel_link)
                     prop_id = f"argenprop_{prop_id_match.group(1)}" if prop_id_match else f"argenprop_{hash(full_link)}"
 
-                    # Titulo y Dirección
                     title_el = card.select_one('.card__title') or card.select_one('.card__address')
                     title = title_el.get_text(strip=True) if title_el else f"Departamento en Alquiler en {neighborhood}"
 
                     address_el = card.select_one('.card__address')
                     address = address_el.get_text(strip=True) if address_el else neighborhood
 
-                    # Precio y Expensas
                     price_el = card.select_one('.card__price')
                     raw_price_text = price_el.get_text(" ", strip=True) if price_el else ""
                     
-                    # Validar si es USD o ARS
                     if "USD" in raw_price_text.upper():
-                        continue  # Omitir dólares
+                        continue
 
                     num_price = parse_price(raw_price_text)
                     if num_price > MAX_PRICE or num_price <= 0:
                         continue
 
-                    # Expensas
                     expensas_match = re.search(r'\+\s*\$\s*([\d\.]+)\s*expensas', raw_price_text, re.IGNORECASE)
                     expensas_text = f"+ ${expensas_match.group(1)} exp" if expensas_match else "Sin expensas acl."
 
