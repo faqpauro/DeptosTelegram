@@ -4,6 +4,9 @@ import os
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8658747902:AAHegLGZme5RIf_zJHzsIfwEMsmFPooAjZA")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "6608835035,6998073168")
 
+# API Key Opcional de ScraperAPI para evadir bloqueos de IP en GitHub Actions
+SCRAPERAPI_KEY = os.getenv("SCRAPERAPI_KEY", "")
+
 # Filtros de Búsqueda
 MAX_PRICE = 950000  # En pesos argentinos (alquiler sin expensas)
 LOCATIONS = ["Villa Devoto", "Villa Real"]
