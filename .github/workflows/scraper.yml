@@ -2,8 +2,8 @@ name: Deptos Telegram Scraper Bot (24/7 en la Nube)
 
 on:
   schedule:
-    # Corre automáticamente cada 20 minutos (24 horas al día, 7 días a la semana)
-    - cron: '*/20 * * * *'
+    # Corre automáticamente cada 15 minutos en los minutos 0, 15, 30 y 45 de cada hora
+    - cron: '0,15,30,45 * * * *'
   workflow_dispatch: # Permite ejecutarlo manualmente desde GitHub cuando quieras
 
 jobs:
