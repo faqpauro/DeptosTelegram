@@ -1,8 +1,8 @@
 import os
 
-# Configuración del Bot de Telegram
+# Configuración del Bot de Telegram (Soporta múltiples chat_ids separados por coma)
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8658747902:AAHegLGZme5RIf_zJHzsIfwEMsmFPooAjZA")
-TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "6608835035")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "6608835035,6998073168")
 
 # Filtros de Búsqueda
 MAX_PRICE = 950000  # En pesos argentinos (alquiler sin expensas)
@@ -32,7 +32,6 @@ def is_location_valid(address: str, title: str, expected_neighborhood: str) -> b
     if "capital federal" in full_text or "caba" in full_text:
         return True
 
-    # Si la búsqueda específica era por ese barrio y no dice provincia, se acepta
     return True
 
 # Intervalo de Chequeo Automático (en minutos)
