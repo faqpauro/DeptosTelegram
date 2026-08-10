@@ -21,8 +21,8 @@ def fetch_mercadolibre():
     seen_ids = set()
 
     search_urls = [
-        # 1. URL exact con filtro Publicados Hoy en Villa Devoto y Villa Real
-        ("Villa Devoto / Villa Real (Hoy)", f"https://inmuebles.mercadolibre.com.ar/departamentos/alquiler/capital-federal/villa-real-o-villa-devoto/_PriceRange_0ARS-{MAX_PRICE}ARS_PublishedToday_YES"),
+        # 1. URL exacta con filtro Publicados Hoy y NoIndex en Villa Devoto y Villa Real
+        ("Villa Devoto / Villa Real (Hoy)", f"https://inmuebles.mercadolibre.com.ar/departamentos/alquiler/capital-federal/villa-real-o-villa-devoto/_PriceRange_0ARS-{MAX_PRICE}ARS_PublishedToday_YES_NoIndex_True"),
         # 2. URL general con filtro de precio en Villa Devoto y Villa Real
         ("Villa Devoto / Villa Real (Todos)", f"https://inmuebles.mercadolibre.com.ar/departamentos/alquiler/capital-federal/villa-real-o-villa-devoto/_PriceRange_0ARS-{MAX_PRICE}ARS"),
         # 3. URL alternativa por barrio
