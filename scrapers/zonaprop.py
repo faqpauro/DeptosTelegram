@@ -3,6 +3,7 @@ import re
 from curl_cffi import requests
 from bs4 import BeautifulSoup
 from config import MAX_PRICE
+from scrapers.browser_fetch import fetch_html_with_playwright
 
 logger = logging.getLogger(__name__)
 
@@ -28,27 +29,28 @@ def fetch_zonaprop():
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "es-AR,es;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept-Encoding": "gzip, deflate, br, zstd",
-        "Sec-Ch-Ua": '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1"
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-AR,es;q=0.9,en-US;q=0.8,en;q=0.7"
     }
 
     for neighborhood, url in SEARCH_URLS:
         try:
-            r = requests.get(url, impersonate="chrome120", headers=headers, timeout=20)
-            if r.status_code != 200:
-                logger.warning(f"[Zonaprop] Status code {r.status_code} al consultar {url}")
+            html = ""
+            try:
+                r = requests.get(url, impersonate="chrome120", headers=headers, timeout=15)
+                if r.status_code == 200:
+                    html = r.text
+                else:
+                    logger.info(f"[Zonaprop] Status code {r.status_code}. Intentando con Playwright Chromium...")
+                    html = fetch_html_with_playwright(url)
+            except Exception:
+                logger.info("[Zonaprop] Fallo HTTP directo. Intentando con Playwright Chromium...")
+                html = fetch_html_with_playwright(url)
+
+            if not html:
                 continue
 
-            soup = BeautifulSoup(r.text, 'html.parser')
+            soup = BeautifulSoup(html, 'html.parser')
             cards = soup.select('.postingCard') or soup.select('[data-id]') or soup.select('div[class*="PostingCard"]')
             logger.info(f"[Zonaprop] Encontradas {len(cards)} publicaciones en {neighborhood}")
 
